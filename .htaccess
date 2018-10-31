@@ -5,3 +5,4 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.+)$ index.php/$1 [NC,L]
 
 Header set Access-Control-Allow-Origin http://localhost:4200
+Header always set Access-Control-Allow-Methods "POST, GET, PUT, OPTIONS"
