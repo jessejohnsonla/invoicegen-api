@@ -4,5 +4,13 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.+)$ index.php/$1 [NC,L]
 
-Header set Access-Control-Allow-Origin http://localhost:4200
-Header always set Access-Control-Allow-Methods "POST, GET, PUT, OPTIONS"
+SetEnvIfNoCase Access-Control-Request-Method "(GET|POST|PUT|DELETE|OPTIONS)" IsPreflight=1
+SetEnvIfNoCase Origin ".*" AccessControlAllowOrigin=$0
+
+Header always set Access-Control-Allow-Origin %{AccessControlAllowOrigin}e env=AccessControlAllowOrigin
+Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" env=IsPreflight
+Header always set Access-Control-Allow-Headers "Content-Type, Authorization, Accept, Accept-Language" env=IsPreflight
+Header always set Access-Control-Max-Age "7200" env=IsPreflight
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteCond %{ENV:IsPreflight} 1
+RewriteRule ^(.*)$ $1 [R=204,L]
