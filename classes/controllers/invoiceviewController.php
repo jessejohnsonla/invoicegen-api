@@ -1,4 +1,5 @@
 <?php
+require 'db.php';
 
 class invoiceviewController extends AbstractController
 {
@@ -17,20 +18,18 @@ class invoiceviewController extends AbstractController
     
     protected function readInvoice($id)
     {
-        $db = new mysqli(  "localhost:3306", "root", "!mysql!", "invoicegen" ); 
         $query = "CALL GetInvoice($id)";
-        $res = $db->query($query); 
+        $result = query_close($query); 
         return $res->fetch_assoc();
     }
 
     protected function readInvoiceItems($invoiceid)
     {
-        $db = new mysqli(  "localhost:3306", "root", "!mysql!", "invoicegen" ); 
         $query = "CALL GetInvoiceItemsByInvoiceID($invoiceid)";
         
-        $res = $db->query($query); 
+        $result = query_close($query); 
         $invoice_items = array();
-        while($row = $res->fetch_assoc()) {
+        while($row = $result->fetch_assoc()) {
             $invoice_items[] = array_map('utf8_encode', $row);
         }
         return $invoice_items;

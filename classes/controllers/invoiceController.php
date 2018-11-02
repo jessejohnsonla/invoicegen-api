@@ -1,10 +1,8 @@
 <?php 
+require 'db.php';
 
 class invoiceController extends AbstractController
 {
-    protected function get_db_connection() {
-        return new mysqli("localhost:3306", "root", "!mysql!", "invoicegen"); 
-    }
     public function get($request)
     {
         switch (count($request->url_elements)) {
@@ -56,7 +54,6 @@ class invoiceController extends AbstractController
     
     protected function createInvoice($invoice) {
         $result = 0;
-        $db = $this->get_db_connection();
         $query = "CALL CreateInvoice( ".
                     "'$invoice->BillToName',".
                     "'$invoice->BillToAddress1',".
@@ -69,14 +66,11 @@ class invoiceController extends AbstractController
                     "$invoice->TaxRate,".
                     "$invoice->AmountPaid,".
                     "'$invoice->DueDate',)";
-        $result = $db->query($query);  
-        
+        $result = query_close($query); 
         return $this->readInvoice($result);
     }
     
     protected function updateInvoice($invoice) {
-        $result = 0;
-        $db = $this->get_db_connection();
         $query = "CALL UpdateInvoice( ".
                     "$invoice->ID,".
                     "'$invoice->BillToName',".
@@ -90,20 +84,17 @@ class invoiceController extends AbstractController
                     "$invoice->TaxRate,".
                     "$invoice->AmountPaid,".
                     "'$invoice->DueDate')";
-        $result = $db->query($query); 
+        $result = query_close($query);
         return $result;
     }
     protected function deleteInvoice($invoice) {
-        $db = $this->get_db_connection();
-        $result = $db->query( "CALL DeleteInvoice($id)"); 
-        //$res->exec();
+        $result = query_close( "CALL DeleteInvoice($id)"); 
         return $result;
     }
 
     protected function readInvoices()
     {
-        $db = $this->get_db_connection(); 
-        $result = $db->query( "CALL GetInvoices()"); 
+        $result = query_close( "CALL GetInvoices()"); 
         $rows = array();
         while($row = $result->fetch_assoc()) {
             $invoices[] = $row;
@@ -113,8 +104,7 @@ class invoiceController extends AbstractController
 
     protected function readInvoice($id)
     {
-        $db = $this->get_db_connection();
-        $result = $db->query( "CALL GetInvoice($id)"); 
+        $result = query_close( "CALL GetInvoice($id)"); 
         $invoices = array();
         while($row = $result->fetch_assoc()) {
             $invoices[] = $row;

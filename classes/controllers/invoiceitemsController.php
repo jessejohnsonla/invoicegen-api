@@ -1,4 +1,5 @@
 <?php
+require 'db.php';
 
 class invoiceitemsController extends AbstractController
 {
@@ -17,38 +18,29 @@ class invoiceitemsController extends AbstractController
         switch (count($request->url_elements)) {
             case 2:
                 $invoice_id = $request->url_elements[1];
-                return $this->createInvoiceItem($invoice_id);
+                $json = file_get_contents("php://input");
+                $item = json_decode($json);
+                return $this->createInvoiceItem($item);
             break;
-        }
-        $json = file_get_contents("php://input");
-        $item = json_decode($json);
-
-        if($request_method === 'post') {
-            return $this->createInvoiceItem($item);
-        }
-        else{
-            return $this->updateInvoiceItem($item);
         }
     }
     
     protected function createInvoiceItem($item) {
         $result = 0;
-        $db = $this->get_db_connection();
         $query = "CALL CreateInvoiceItem( ".
                     "'$item->InvoiceID',".
                     "'$item->Description',".
                     "'$item->Qty',".
-                    "'$item->Rate',)";
-        $result = $db->query($query);  
+                    "'$item->Rate',".
+                    "'$item->Date')";
+        $result = query_close($query);
         
-        return $result;
+        return ($result) ? $result->fetch_assoc() : "false";
     }
 
     protected function readInvoiceItems($invoiceid)
     {
-        $db = new mysqli(  "localhost:3306", "root", "!mysql!", "invoicegen" ); 
-
-        $res = $db->query( "CALL GetInvoiceItemsByInvoiceID($invoiceid)"); 
+        $res = query_close( "CALL GetInvoiceItemsByInvoiceID($invoiceid)"); 
         $rows = array();
         while($row = $res->fetch_assoc()) {
             $invoiceitems[] = $row;
