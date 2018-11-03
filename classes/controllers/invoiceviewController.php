@@ -20,7 +20,7 @@ class invoiceviewController extends AbstractController
     {
         $query = "CALL GetInvoice($id)";
         $result = query_close($query); 
-        return $res->fetch_assoc();
+        return $result->fetch_assoc();
     }
 
     protected function readInvoiceItems($invoiceid)

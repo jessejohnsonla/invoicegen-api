@@ -62,8 +62,6 @@ if (!empty($request->url_elements)) {
     if (class_exists($controller_name)) {
         $controller = new $controller_name;
         $action_name = strtolower($request->method);
-        // if($action_name === 'options')
-        //     $action_name = 'put';
         $response_str = call_user_func_array(array($controller, $action_name), array($request));
     }
     else {
