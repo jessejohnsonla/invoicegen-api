@@ -7,21 +7,62 @@ class invoiceitemsController extends AbstractController
     {
         switch (count($request->url_elements)) {
             case 2:
-                $invoice_id = $request->url_elements[1];
-                return $this->readInvoiceItems($invoice_id);
+                $invoiceid = $request->url_elements[1];
+                return $this->readInvoiceItems($invoiceid);
+            break;
+            case 3:
+                $invoiceid = $request->url_elements[1];
+                $invoiceitemid = $request->url_elements[2];
+                return $this->readInvoiceItem($invoiceid, $invoiceitemid);
             break;
         }
     }
     
     public function post($request) //create
     {
-        switch (count($request->url_elements)) {
-            case 2:
-                $invoice_id = $request->url_elements[1];
-                $json = file_get_contents("php://input");
-                $item = json_decode($json);
-                return $this->createInvoiceItem($item);
-            break;
+        return $this->handle_non_get_request($request, 'post');
+    }
+    
+    public function put($request) //update
+    {
+        return $this->handle_non_get_request($request, 'put');
+    }
+
+    public function options($request) { //update due to cors
+        return $this->handle_non_get_request($request, 'options');
+    }
+
+    public function delete($request) //create
+    {
+        return $this->handle_non_get_request($request, 'delete');
+    }
+    
+
+    protected function handle_non_get_request($request, $request_method) {
+        $json = file_get_contents("php://input");
+        $invoiceitem = json_decode($json);
+
+        if($request_method === 'post') {
+            switch (count($request->url_elements)) {
+                case 2:
+                    return $this->createInvoiceItem($invoiceitem);
+                break;
+            }
+        }
+        elseif($request_method === 'delete') {
+            switch (count($request->url_elements)) {
+                case 2:
+                    $invoiceitemid = $request->url_elements[1];
+                    return $this->deleteInvoiceItem($invoiceitemid);
+                break;
+            }
+        }
+        else{
+            switch (count($request->url_elements)) {
+                case 2:
+                    return $this->updateInvoiceItem($invoiceitem);
+                break;
+            }
         }
     }
     
@@ -37,6 +78,17 @@ class invoiceitemsController extends AbstractController
         
         return ($result) ? $result->fetch_assoc() : "false";
     }
+    protected function updateInvoiceItem($item) {
+        $query = "CALL UpdateInvoiceItem( ".
+                    "$item->ID,".
+                    "'$item->InvoiceID',".
+                    "'$item->Description',".
+                    "'$item->Qty',".
+                    "'$item->Rate',".
+                    "'$item->Date')";
+        $result = query_close($query);
+        return $result;
+    }
 
     protected function readInvoiceItems($invoiceid)
     {
@@ -46,5 +98,20 @@ class invoiceitemsController extends AbstractController
             $invoiceitems[] = $row;
         }
         return $invoiceitems;
+    }
+
+    protected function readInvoiceItem($invoiceid, $invoiceitemid)
+    {
+        $res = query_close( "CALL GetInvoiceItemByID($invoiceid, $invoiceitemid)"); 
+        $rows = array();
+        $invoiceitem = $res->fetch_assoc();
+        return $invoiceitem;
+    }
+
+    protected function deleteInvoiceItem($invoiceitemid)
+    {
+        $res = query_close( "CALL DeleteInvoiceItem($invoiceitemid)"); 
+        $deletecount = $res->fetch_row()[0];
+        return $deletecount;
     }
 }
