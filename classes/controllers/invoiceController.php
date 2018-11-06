@@ -1,5 +1,6 @@
 <?php 
 require 'db.php';
+require 'utils.php';
 
 class invoiceController extends AbstractController
 {
@@ -40,7 +41,7 @@ class invoiceController extends AbstractController
         }
     }
 
-    protected function handle_non_get_request($request, $request_method) {
+    public function handle_non_get_request($request, $request_method) {
         $json = file_get_contents("php://input");
         $invoice = json_decode($json);
 
@@ -51,65 +52,65 @@ class invoiceController extends AbstractController
             return $this->updateInvoice($invoice);
         }
     }
-    
-    protected function createInvoice($invoice) {
+
+    public function createInvoice($invoice) {
         $result = 0;
         $query = "CALL CreateInvoice( ".
-                    "'$invoice->BillToName',".
-                    "'$invoice->BillToAddress1',".
-                    "'$invoice->BillToAddress2',".
-                    "'$invoice->BillToCity',".
-                    "'$invoice->BillToState',".
-                    "'$invoice->BillToZipcode',".
-                    "'$invoice->ServiceDate',".
-                    "'$invoice->Terms',".
-                    "$invoice->TaxRate,".
-                    "$invoice->AmountPaid,".
-                    "'$invoice->DueDate',)";
+                    "'" . get_property_safe($invoice, 'BillToName')  . "',".
+                    "'" . get_property_safe($invoice, 'BillToAddress1') . "',".
+                    "'" . get_property_safe($invoice, 'BillToAddress2') . "',".
+                    "'" . get_property_safe($invoice, 'BillToCity') . "',".
+                    "'" . get_property_safe($invoice, 'BillToState') . "',".
+                    "'" . get_property_safe($invoice, 'BillToZipcode') . "',".
+                    "'" . get_property_safe($invoice, 'ServiceDate') . "',".
+                    "'" . get_property_safe($invoice, 'Terms') . "',".
+                    "'" . get_property_safe($invoice, 'TaxRate') . "',".
+                    "'" . get_property_safe($invoice, 'AmountPaid') . "',".
+                    "'" . get_property_safe($invoice, 'DueDate') . "')";
         $result = query_close($query); 
-        return $this->readInvoice($result);
+        $row = $result->fetch_assoc();
+        $id = $row['ID'];
+        return $this->readInvoice($id);
     }
     
-    protected function updateInvoice($invoice) {
+    public function updateInvoice($invoice) {
         $query = "CALL UpdateInvoice( ".
                     "$invoice->ID,".
-                    "'$invoice->BillToName',".
-                    "'$invoice->BillToAddress1',".
-                    "'$invoice->BillToAddress2',".
-                    "'$invoice->BillToCity',".
-                    "'$invoice->BillToState',".
-                    "'$invoice->BillToZipcode',".
-                    "'$invoice->ServiceDate',".
-                    "'$invoice->Terms',".
-                    "$invoice->TaxRate,".
-                    "$invoice->AmountPaid,".
-                    "'$invoice->DueDate')";
+                    "'" . get_property_safe($invoice, 'BillToName')  . "',".
+                    "'" . get_property_safe($invoice, 'BillToAddress1') . "',".
+                    "'" . get_property_safe($invoice, 'BillToAddress2') . "',".
+                    "'" . get_property_safe($invoice, 'BillToCity') . "',".
+                    "'" . get_property_safe($invoice, 'BillToState') . "',".
+                    "'" . get_property_safe($invoice, 'BillToZipcode') . "',".
+                    "'" . get_property_safe($invoice, 'ServiceDate') . "',".
+                    "'" . get_property_safe($invoice, 'Terms') . "',".
+                    "'" . get_property_safe($invoice, 'TaxRate') . "',".
+                    "'" . get_property_safe($invoice, 'AmountPaid') . "',".
+                    "'" . get_property_safe($invoice, 'DueDate') . "')";
         $result = query_close($query);
         return $result;
     }
-    protected function deleteInvoice($invoice) {
+    public function deleteInvoice($id) {
         $result = query_close( "CALL DeleteInvoice($id)"); 
-        return $result;
+        $deletecount = $result->fetch_row()[0];
+        return $deletecount;
     }
 
-    protected function readInvoices()
+    public function readInvoices()
     {
         $result = query_close( "CALL GetInvoices()"); 
         $rows = array();
+        $invoices = [];
         while($row = $result->fetch_assoc()) {
             $invoices[] = $row;
         }
         return $invoices;
     }
 
-    protected function readInvoice($id)
+    public function readInvoice($id)
     {
         $result = query_close( "CALL GetInvoice($id)"); 
-        $invoices = array();
-        while($row = $result->fetch_assoc()) {
-            $invoices[] = $row;
-        }
-        $invoice = (count($invoices) > 0) ? $invoices[0] : null;
+        $invoice = $result->fetch_assoc();
         return $invoice;
     }
 }

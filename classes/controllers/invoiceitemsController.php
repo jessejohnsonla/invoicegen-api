@@ -1,5 +1,6 @@
 <?php
 require 'db.php';
+require 'utils.php';
 
 class invoiceitemsController extends AbstractController
 {
@@ -69,29 +70,30 @@ class invoiceitemsController extends AbstractController
     protected function createInvoiceItem($item) {
         $result = 0;
         $query = "CALL CreateInvoiceItem( ".
-                    "'$item->InvoiceID',".
-                    "'$item->Description',".
-                    "'$item->Qty',".
-                    "'$item->Rate',".
-                    "'$item->Date')";
+                    "'" . get_property_safe($item, 'InvoiceID')  . "',".
+                    "'" . get_property_safe($item, 'Description') . "',".
+                    "'" . get_property_safe($item, 'Qty') . "',".
+                    "'" . get_property_safe($item, 'Rate') . "',".
+                    "'" . get_property_safe($item, 'Date') . "')";
         $result = query_close($query);
         
         return ($result) ? $result->fetch_assoc() : "false";
     }
     protected function updateInvoiceItem($item) {
         $query = "CALL UpdateInvoiceItem( ".
-                    "$item->ID,".
-                    "'$item->InvoiceID',".
-                    "'$item->Description',".
-                    "'$item->Qty',".
-                    "'$item->Rate',".
-                    "'$item->Date')";
+                    "'" . get_property_safe($item, 'ID')  . "',".
+                    "'" . get_property_safe($item, 'InvoiceID')  . "',".
+                    "'" . get_property_safe($item, 'Description') . "',".
+                    "'" . get_property_safe($item, 'Qty') . "',".
+                    "'" . get_property_safe($item, 'Rate') . "',".
+                    "'" . get_property_safe($item, 'Date') . "')";
         $result = query_close($query);
         return $result;
     }
 
     protected function readInvoiceItems($invoiceid)
     {
+        $invoiceitems = [];
         $res = query_close( "CALL GetInvoiceItemsByInvoiceID($invoiceid)"); 
         $rows = array();
         while($row = $res->fetch_assoc()) {

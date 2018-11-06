@@ -1,5 +1,6 @@
 <?php
 require 'db.php';
+require 'utils.php';
 
 class invoiceviewController extends AbstractController
 {
